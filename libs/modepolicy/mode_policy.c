@@ -1197,3 +1197,25 @@ const char *meson_dvModeTypeToString(const char *dvMode) {
     }
     return typeStr;
 }
+
+const char *meson_modePolicyToString(int32_t type) {
+    const char * typeStr;
+    switch (type) {
+        case MESON_POLICY_BEST:
+            typeStr = "best";
+            break;
+        case MESON_POLICY_RESOLUTION:
+            typeStr = "resolution";
+            break;
+        case MESON_POLICY_FRAMERATE:
+            typeStr = "framerate";
+            break;
+        case MESON_POLICY_DV:
+            typeStr = "dv policy";
+            break;
+        default:
+            typeStr = "INVALID";
+            break;
+    }
+    return typeStr;
+}

@@ -36,7 +36,7 @@ typedef enum meson_mode_policy {
     MESON_POLICY_BEST = 0,
     MESON_POLICY_RESOLUTION = 1,
     MESON_POLICY_FRAMERATE = 2,
-    MESON_POLICY_DOLBY_VISION = 3,
+    MESON_POLICY_DV = 3,
     MESON_POLICY_INVALID = 8,
 } meson_mode_policy_e;
 
@@ -248,6 +248,8 @@ const char *meson_dvModeTypeToString(const char *dvmode);
 const char *meson_hdrPriorityToString(int32_t type);
 
 const char *meson_hdrPolicyToString(int32_t type);
+
+const char *meson_modePolicyToString(int32_t type);
 
 #ifdef __cplusplus
 }
