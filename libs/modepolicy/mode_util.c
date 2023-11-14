@@ -70,10 +70,40 @@ int32_t meson_mode_read_sys(const char *path, char *val, bool original, int valS
     return 0;
 }
 
+#ifdef LINUX_COMPILE
+static bool meson_valid_mode_by_drm(int *valid, const char *outputmode)
+{
+    struct drm_mode_test_attr args = { 0 };
+    bool ret = false;
+    int fd = open("/dev/dri/card0", O_RDWR | O_CLOEXEC);
+
+    if (fd < 0)
+        return ret;
+
+    strcpy(args.modename, outputmode);
+    strcpy(args.attr, outputmode);
+    if (ioctl(fd, DRM_IOCTL_MESON_TESTATTR, &args) == 0) {
+        *valid = args.valid;
+        SYS_LOGI("valid: %d\n", *valid);
+        ret = true;
+    }
+    close(fd);
+    return ret;
+}
+#endif
+
 bool meson_write_valid_mode_sys(const char* path, const char *outputmode) {
     int fd;
+    int valid = 0;
 
     SYS_LOGD("meson_write %s, outputmode:%s\n", path, outputmode);
+
+#ifdef LINUX_COMPILE
+    if (access(path, F_OK) == 0) {
+        if (meson_valid_mode_by_drm(&valid, outputmode))
+            return valid == 1;
+    }
+#endif
 
     if ((fd = open(path, O_WRONLY)) < 0) {
         SYS_LOGE("meson_write, open %s fail.", path);

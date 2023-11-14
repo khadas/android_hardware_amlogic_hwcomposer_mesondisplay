@@ -8,7 +8,6 @@
  */
 
 #include <stdint.h>
-#include <cutils/threads.h>
 
 #include <sys/stat.h>
 #include <string.h>

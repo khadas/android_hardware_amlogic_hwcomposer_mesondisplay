@@ -237,7 +237,7 @@ static void update_dv_mode(char *dv_maxmode,
     /*
      * 2. find prefer amdolby vision resolution
      */
-    if (policy == MESON_POLICY_BEST) {
+    if (policy == MESON_POLICY_BEST || policy == MESON_POLICY_MIX) {
         /* 2.1 best policy enable case */
         if (!strcmp(dv_displaymode, DV_MODE_4K2K60HZ)) {
             /* TV support amdolby vision 2160p60hz case */
@@ -632,7 +632,41 @@ static bool hdr_scene_process(struct meson_policy_in *input,
              * and except from third apk or framework set mode.
              */
             find = find_hdr_prefer_mode(input, output_info);
-        } else if (policy == MESON_POLICY_BEST || policy == MESON_POLICY_RESOLUTION || policy == MESON_POLICY_FRAMERATE) {
+        } else if ((policy == MESON_POLICY_MIX || policy == MESON_POLICY_RESOLUTION) && input->con_info.is_bestcolorspace) {
+            const char **resolutionList = NULL;
+            int resolutionList_length   = 0;
+            bool first = false;
+
+            resolutionList        = MODE_RESOLUTION_FIRST;
+            resolutionList_length = ARRAY_SIZE(MODE_RESOLUTION_FIRST);
+
+            for (int j = resolutionList_length - 1; j >= 0 ; j--) {
+                char cur_color_attribute[MESON_MODE_LEN] = { 0 };
+                char hdmi_mode[MESON_MODE_LEN] = { 0 };
+                int depth = 0;
+
+                strcpy(hdmi_mode, resolutionList[j]);
+                if (is_support_HdmiMode(input, hdmi_mode)) {
+                    get_best_deepcolor(input, hdmi_mode, cur_color_attribute);
+                    char *pos = strchr(cur_color_attribute, ',');
+                    if (pos != NULL) {
+                        find = true;
+                        if (sscanf(pos + 1, "%dbit", &depth) == 1) {
+                            if (depth >= 10) {
+                                strcpy(output_info->deepcolor, cur_color_attribute);
+                                strcpy(output_info->displaymode, hdmi_mode);
+                                break;
+                            }
+                        }
+                        if (!first) {
+                            strcpy(output_info->deepcolor, cur_color_attribute);
+                            strcpy(output_info->displaymode, hdmi_mode);
+                            first = true;
+                        }
+                    }
+                }
+            }
+        } else if (policy == MESON_POLICY_BEST || policy == MESON_POLICY_MIX || policy == MESON_POLICY_RESOLUTION || policy == MESON_POLICY_FRAMERATE) {
             const char **resolutionList = NULL;
             int resolutionList_length   = 0;
             if (policy == MESON_POLICY_BEST) {
@@ -782,7 +816,7 @@ static void get_highest_mode_by_policy(struct meson_policy_in *input,
                 if (config_ptr->pixel_w < it->pixel_w && config_ptr->pixel_h < it->pixel_h)
                     config_ptr = it;
             }
-        } else if (policy == MESON_POLICY_RESOLUTION) {
+        } else if (policy == MESON_POLICY_RESOLUTION || policy == MESON_POLICY_MIX) {
             if (config_ptr->pixel_h < it->pixel_h) {
                 config_ptr = it;
             } else if (config_ptr->pixel_h == it->pixel_h) {

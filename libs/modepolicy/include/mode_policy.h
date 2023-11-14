@@ -37,6 +37,7 @@ typedef enum meson_mode_policy {
     MESON_POLICY_RESOLUTION = 1,
     MESON_POLICY_FRAMERATE = 2,
     MESON_POLICY_DV = 3,
+    MESON_POLICY_MIX = 4,
     MESON_POLICY_INVALID = 8,
 } meson_mode_policy_e;
 

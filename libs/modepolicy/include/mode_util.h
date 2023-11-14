@@ -36,6 +36,8 @@ extern "C" {
 #define COLOR_B 8
 
 #ifndef UBOOT
+
+#ifndef LINUX_COMPILE
 #include <log/log.h>
 
 #ifndef LOG_TAG
@@ -53,6 +55,31 @@ extern "C" {
             ALOGE(fmt, ##__VA_ARGS__); \
             abort(); \
         }
+
+#else
+
+#ifndef LOG_TAG
+#define LOG_TAG "Westeros"
+#endif
+
+#define SYS_LOGV(fmt,...)     fprintf(stderr, fmt "\n", ##__VA_ARGS__)
+#define SYS_LOGD(fmt,...)		fprintf(stderr, fmt "\n", ##__VA_ARGS__)
+//#define SYS_LOGI(fmt,...)		fprintf(stderr, fmt, ##__VA_ARGS__)
+#define SYS_LOGI(fmt,...)		fprintf(stderr, "[%s, %s, %d] " fmt "\n", strrchr(__FILE__, '/'), __FUNCTION__, __LINE__, ##__VA_ARGS__)
+#define SYS_LOGW(fmt,...)		fprintf(stderr, fmt "\n", ##__VA_ARGS__)
+#define SYS_LOGE(fmt,...)		fprintf(stderr, fmt "\n", ##__VA_ARGS__)
+#define SYS_ASSERT(condition,fmt,...) \
+        if (!(condition)) { \
+            fprintf(stderr, fmt, ##__VA_ARGS__); \
+            abort(); \
+        }
+
+#ifndef __unused
+#define __unused __attribute__((__unused__))
+#endif
+
+#include <linux/amlogic/drm/meson_drm.h>
+#endif
 
 #else
 #define SYS_LOGD(fmt, arg...) do { fprintf(stderr, "[meson_display: Debug:PID[%5d]:%8ld]\033[3%d;4%dm " fmt "\033[0m [in %s:%d]\n",getpid(), time(NULL), COLOR_F, COLOR_B, ##arg, __func__, __LINE__);}while(0)
