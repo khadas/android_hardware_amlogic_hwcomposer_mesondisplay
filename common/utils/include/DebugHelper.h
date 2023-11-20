@@ -64,6 +64,7 @@ public:
     inline bool enableDrmBlockMode() { return mDrmBlockMode; }
     inline bool disableAISRAIPQ() { return mDisableAisrAipq; }
     inline bool disableDi() { return mDisableDi; }
+    inline bool enableGrallocCallback() { return mEnableGrallocCallback;}
 
 protected:
     bool isEnabled();
@@ -105,5 +106,6 @@ protected:
     bool mDrmBlockMode;
     bool mDisableAisrAipq;
     bool mDisableDi;
+    bool mEnableGrallocCallback;
 };
 #endif

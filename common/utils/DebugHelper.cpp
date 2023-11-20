@@ -46,7 +46,7 @@ ANDROID_SINGLETON_STATIC_INSTANCE(DebugHelper)
 #define COMMAND_DRM_BLOCK_MODE "--drm-block"
 #define COMMAND_DISABLE_AISR_AIPQ "--no-aisr-aipq"
 #define COMMAND_DISABLE_DI "--no-di"
-
+#define COMMAND_ENABLE_GRALLOC_CALLBACK "--enable-gralloc-callback"
 
 #define MAX_DEBUG_COMMANDS (20)
 
@@ -101,6 +101,7 @@ void DebugHelper::clearPersistCmd() {
     mDrmBlockMode = false;
     mDisableAisrAipq = false;
     mDisableDi = false;
+    mEnableGrallocCallback = false;
 }
 
 void DebugHelper::addHideLayer(int id) {
@@ -379,6 +380,13 @@ void DebugHelper::resolveCmd() {
                     mDisableDi = INT_PARAMETER_TO_BOOL(paramArray[i]);
                     continue;
                 }
+
+                if (strcmp(paramArray[i], COMMAND_ENABLE_GRALLOC_CALLBACK) == 0) {
+                    i++;
+                    CHECK_CMD_INT_PARAMETER();
+                    mEnableGrallocCallback = INT_PARAMETER_TO_BOOL(paramArray[i]);
+                    continue;
+                }
             }
 
             /*Need permission to reset prop.*/
@@ -451,7 +459,8 @@ void DebugHelper::dump(std::string & dumpstr) {
             "\t " COMMAND_SCALE_LIMIT " [float]: vpu scale limit factor. \n"
             "\t " COMMAND_DRM_BLOCK_MODE " 0|1: enable/disable drm-block commit mode. \n"
             "\t " COMMAND_DISABLE_AISR_AIPQ " 0|1: enable/disable aisr aipq.\n"
-            "\t " COMMAND_DISABLE_DI " 0|1: enable/disable di processor.\n";
+            "\t " COMMAND_DISABLE_DI " 0|1: enable/disable di processor.\n"
+            "\t " COMMAND_ENABLE_GRALLOC_CALLBACK " 0|1: disable/enable gralloc callback.\n";
 
         dumpstr.append("\nMesonHwc debug helper:\n");
         dumpstr.append(usage);
@@ -473,6 +482,7 @@ void DebugHelper::dump(std::string & dumpstr) {
         StringAppendF(&dumpstr, COMMAND_DRM_BLOCK_MODE " (%d)\n", mDrmBlockMode);
         StringAppendF(&dumpstr, COMMAND_DISABLE_AISR_AIPQ " (%d)\n", mDisableAisrAipq);
         StringAppendF(&dumpstr, COMMAND_DISABLE_DI " (%d)\n", mDisableDi);
+        StringAppendF(&dumpstr, COMMAND_ENABLE_GRALLOC_CALLBACK " (%d)\n", mEnableGrallocCallback);
 
 
         dumpstr.append(COMMAND_HIDE_PLANE "/" COMMAND_SHOW_PATTERN_ON_PLANE " (");
