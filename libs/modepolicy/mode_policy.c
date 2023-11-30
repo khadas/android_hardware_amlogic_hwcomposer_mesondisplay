@@ -323,11 +323,53 @@ static int32_t dv_scene_process(struct meson_policy_in *input,
     return 0;
 }
 
+/*
+ * we need find the brr mode and check it with cs/cd.
+ */
+
+static bool find_brr_mode(const char *mode, struct meson_policy_in *input, char* outputmode) {
+    if (!mode || !input || !outputmode)
+        return false;
+
+    strcpy(outputmode, mode);
+
+    meson_mode_info_t *config_ptr = NULL;
+    meson_mode_info_t *modes_ptr = input->con_info.modes;
+    /* first loop find the meson_mode_info */
+    for (int i = 0; i < input->con_info.modes_size; i ++) {
+        meson_mode_info_t *it = &modes_ptr[i];
+        if (!strcmp(it->name, mode)) {
+            config_ptr = it;
+            break;
+        }
+    }
+
+    if (!config_ptr)
+        return false;
+
+    /* second loop find the brr mode */
+    for (int i = 0; i < input->con_info.modes_size; i ++) {
+        meson_mode_info_t *it = &modes_ptr[i];
+
+        if (it->group_id == config_ptr->group_id) {
+            if (it->refresh_rate > config_ptr->refresh_rate) {
+                config_ptr = it;
+            }
+
+        }
+    }
+
+    strcpy(outputmode, config_ptr->name);
+
+    return true;
+}
+
 /* check resolution and color format support or not */
-static bool mode_support_check(const char *mode, const char * color) {
+static bool mode_support_check(const char *mode, const char * color, struct meson_policy_in *input) {
     char outputmode[MESON_MODE_LEN] = {0};
     bool validmode = false;
-    strcpy(outputmode, mode);
+
+    find_brr_mode(mode, input, outputmode);
     strcat(outputmode, color);
 
     /* try support or not */
@@ -373,7 +415,7 @@ static bool is_support_4kHDR(struct meson_policy_in *input,
                 for (int k = 0; k < input->con_info.modes_size; k ++) {
                     meson_mode_info_t *it = &modes_ptr[k];
                     if (strcmp(it->name, resolutionList[j]) == 0) {
-                        if (mode_support_check(resolutionList[j], colorList[i])) {
+                        if (mode_support_check(resolutionList[j], colorList[i], input)) {
                            SYS_LOGI("%s mode:[%s], deep color:[%s]\n", __FUNCTION__, resolutionList[j], colorList[i]);
                            strcpy(output_info->deepcolor, colorList[i]);
                            strcpy(output_info->displaymode, resolutionList[j]);
@@ -421,7 +463,7 @@ static bool is_support_non4kHDR(struct meson_policy_in *input,
                 for (int k = 0; k < input->con_info.modes_size; k ++) {
                     meson_mode_info_t *it = &modes_ptr[k];
                     if (strcmp(it->name, resolutionList[j]) == 0) {
-                        if (mode_support_check(resolutionList[j], colorList[i])) {
+                        if (mode_support_check(resolutionList[j], colorList[i], input)) {
                            SYS_LOGI("%s mode:[%s], deep color:[%s]\n", __FUNCTION__, resolutionList[j], colorList[i]);
                            strcpy(output_info->deepcolor, colorList[i]);
                            strcpy(output_info->displaymode, resolutionList[j]);
@@ -554,7 +596,7 @@ static void get_best_deepcolor(struct meson_policy_in *input,
     for (int i = 0; i < length; i++) {
         if ((pos = strstr(supportedColorList, colorList[i])) != NULL) {
             //check resolution+color format support or not base driver edid
-            if (mode_support_check(outputmode, colorList[i])) {
+            if (mode_support_check(outputmode, colorList[i], input)) {
                 SYS_LOGI("support current mode:[%s], deep color:[%s]\n", outputmode, colorList[i]);
                 strcpy(colorAttribute, colorList[i]);
                 break;
@@ -601,7 +643,7 @@ static bool hdr_scene_process(struct meson_policy_in *input,
                     meson_mode_info_t *it = &modes_ptr[i];
 
                     if (!strcmp(it->name, resolutionList[j])) {
-                        if (mode_support_check(resolutionList[j], input->con_info.ubootenv_colorattr)) {
+                        if (mode_support_check(resolutionList[j], input->con_info.ubootenv_colorattr, input)) {
                             SYS_LOGI("%s mode:[%s], deep color:[%s]\n", __FUNCTION__, resolutionList[j], input->con_info.ubootenv_colorattr);
                             strcpy(output_info->deepcolor, input->con_info.ubootenv_colorattr);
                             strcpy(output_info->displaymode, resolutionList[j]);
@@ -638,7 +680,7 @@ static bool hdr_scene_process(struct meson_policy_in *input,
 
             for (int j = 0; j < colorList_length; j++) {
                 if (strstr(input->con_info.dc_cap, colorList[j]) != NULL) {
-                    if (mode_support_check(input->cur_displaymode, colorList[j])) {
+                    if (mode_support_check(input->cur_displaymode, colorList[j], input)) {
                         SYS_LOGI("%s mode:[%s], deep color:[%s]\n", __FUNCTION__, input->cur_displaymode, colorList[j]);
                         strcpy(output_info->deepcolor, colorList[j]);
                         strcpy(output_info->displaymode, input->cur_displaymode);
@@ -649,7 +691,7 @@ static bool hdr_scene_process(struct meson_policy_in *input,
             }
         } else {
             //1.check mode+color format support or not
-            if (mode_support_check(input->cur_displaymode, input->con_info.ubootenv_colorattr)) {
+            if (mode_support_check(input->cur_displaymode, input->con_info.ubootenv_colorattr, input)) {
                 SYS_LOGI("support current mode:[%s], deep color:[%s]\n", input->cur_displaymode, input->con_info.ubootenv_colorattr);
                 strcpy(output_info->deepcolor, input->con_info.ubootenv_colorattr);
                 strcpy(output_info->displaymode, input->cur_displaymode);
@@ -677,7 +719,7 @@ static bool hdr_scene_process(struct meson_policy_in *input,
          //switch UI case
          //1.check cur_displaymode + ubootenv.var.colorattribute support or not
          // and except from third apk or framework set mode.
-         if (mode_support_check(input->cur_displaymode, input->con_info.ubootenv_colorattr)
+         if (mode_support_check(input->cur_displaymode, input->con_info.ubootenv_colorattr, input)
              && !input->con_info.is_bestcolorspace) {
              SYS_LOGI("support current mode:[%s], deep color:[%s]\n", input->cur_displaymode, input->con_info.ubootenv_colorattr);
              strcpy(output_info->deepcolor, input->con_info.ubootenv_colorattr);
@@ -810,7 +852,7 @@ static void get_hdmi_color_attr(struct meson_policy_in *input,
     if (input->con_info.is_bestcolorspace == false) {
         char colorTemp[MESON_MODE_LEN] = {0};
         strcpy(colorTemp, input->con_info.ubootenv_colorattr);
-        if (mode_support_check(outputmode, colorTemp)) {
+        if (mode_support_check(outputmode, colorTemp, input)) {
             strcpy(color_attr, input->con_info.ubootenv_colorattr);
         } else {
             get_best_deepcolor(input, outputmode, color_attr);
@@ -1006,6 +1048,30 @@ int32_t meson_mode_get_policy_output(int32_t connector, struct meson_policy_out 
     return 0;
 }
 
+
+int32_t meson_mode_get_support_color(int32_t connector, const char *mode, char* color) {
+    if (!mode || !color) {
+        return -EINVAL;
+    }
+
+    GET_CURRENT_POLICY(connector);
+    struct meson_policy_in *input = &mp->input;
+    char dc_cap[MESON_MAX_STR_LEN] = {0};
+    strncpy(dc_cap, input->con_info.dc_cap, MESON_MAX_STR_LEN - 1);
+    dc_cap[MESON_MAX_STR_LEN -1] = '\0';
+
+    char *token = NULL;
+    char *rest = dc_cap;
+    for (token = strtok_r(rest, "\n", &rest); token != NULL; token = strtok_r(NULL, "\n", &rest)) {
+        if (mode_support_check(mode, token, input)) {
+            strcat(color, token);
+            strcat(color, "\n");
+        }
+    }
+
+    return 0;
+}
+
 /*
  * @param enable         [in] enable test mode or not
  *
@@ -1059,7 +1125,7 @@ int32_t meson_mode_support_mode(int32_t connector, int32_t type, char *mode) {
         for (int i = 0; i < length; i++) {
             if (strstr(supportedColorList, colorList[i]) != NULL) {
                 //check resolution+color format support or not base driver edid
-                if (mode_support_check(mode, colorList[i])) {
+                if (mode_support_check(mode, colorList[i], input)) {
                     SYS_LOGI("support current mode:[%s], deep color:[%s]\n", mode, colorList[i]);
                     ret = 0;
                     break;
@@ -1109,7 +1175,7 @@ int32_t meson_mode_support_mode(int32_t connector, int32_t type, char *mode) {
         int dv_type = update_dv_type(&input->hdr_info);
         char dv_attr[MESON_MODE_LEN] = {0};
         update_dv_attr(input->hdr_info.dv_deepcolor, dv_type, dv_attr);
-        if (mode_support_check(mode, dv_attr)) {
+        if (mode_support_check(mode, dv_attr, input)) {
             SYS_LOGI("support current mode:[%s], deep color:[%s]\n", mode, dv_attr);
             ret = 0;
         }

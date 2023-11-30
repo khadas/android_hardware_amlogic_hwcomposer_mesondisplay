@@ -228,6 +228,11 @@ int32_t meson_mode_set_policy_input(int32_t connector, const struct meson_policy
 int32_t meson_mode_get_policy_output(int32_t connector, struct meson_policy_out *out);
 
 /*
+ * get current mode support color
+ */
+int32_t meson_mode_get_support_color(int32_t connector, const char *mode, char* color);
+
+/*
  * for uinit test mode
  */
 void meson_mode_set_test_mode(const bool enable);
