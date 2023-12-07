@@ -15,6 +15,8 @@
 #include <xf86drm.h>
 #include <xf86drmMode.h>
 
+#define MAX_VRR_MODE_GROUP 12
+
 /* blend mode for composition or display.
  * The define is same as hwc2_blend_mode.
  * For hwc1, we need do convert.
@@ -337,6 +339,19 @@ typedef struct drm_meson_present_fence {
         uint32_t crtc_idx;
         uint32_t fd;
 } drm_meson_present_fence_t;
+
+typedef struct drm_vrr_mode_group {
+        uint32_t brr_vic;
+        uint32_t width;
+        uint32_t height;
+        uint32_t vrr_min;
+        uint32_t vrr_max;
+} drm_meson_vrr_mode_group_t;
+
+typedef struct drm_vrr_mode_groups {
+        uint32_t num;
+        drm_meson_vrr_mode_group_t gropus[MAX_VRR_MODE_GROUP];
+} drm_meson_vrr_mode_groups_t;
 
 /*the invalid zorder value definition.*/
 #define INVALID_ZORDER 0xFFFFFFFF
