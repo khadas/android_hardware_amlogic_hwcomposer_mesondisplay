@@ -33,11 +33,13 @@ cc_library_static {
 
     srcs: [
         "base/DrmTypes.cpp",
+        "base/DrmFrameBufferBase.cpp",
         "utils/DebugHelper.cpp",
     ],
 
     export_include_dirs: [
         "base/include",
         "utils/include",
+        "display/include",
     ],
 }
