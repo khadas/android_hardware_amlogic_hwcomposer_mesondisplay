@@ -58,7 +58,7 @@
 #define MODE_4K2K60HZ                   "2160p60hz"
 #define MODE_4K2K100HZ                  "3840x2160p100hz"
 #define MODE_4K2K120HZ                  "3840x2160p120hz"
-#define MODE_4K2KSMPTE                  "smpte24hz"
+#define MODE_4K2KSMPTE24HZ              "smpte24hz"
 #define MODE_4K2KSMPTE30HZ              "smpte30hz"
 #define MODE_4K2KSMPTE50HZ              "smpte50hz"
 #define MODE_4K2KSMPTE60HZ              "smpte60hz"
@@ -121,7 +121,7 @@ static const char* DISPLAY_MODE_LIST[] = {
     MODE_4K2K30HZ,
     MODE_4K2K50HZ,
     MODE_4K2K60HZ,
-    MODE_4K2KSMPTE,
+    MODE_4K2KSMPTE24HZ,
     MODE_4K2KSMPTE30HZ,
     MODE_4K2KSMPTE50HZ,
     MODE_4K2KSMPTE60HZ,

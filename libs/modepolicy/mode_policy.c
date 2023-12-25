@@ -544,7 +544,11 @@ static void get_best_deepcolor(struct meson_policy_in *input,
      */
     if (!strlen(supportedColorList)) {
         if (!strcmp(outputmode, MODE_4K2K60HZ) || !strcmp(outputmode, MODE_4K2K50HZ)
-            || !strcmp(outputmode, MODE_4K2KSMPTE60HZ) || !strcmp(outputmode, MODE_4K2KSMPTE50HZ)) {
+            || !strcmp(outputmode, MODE_4K2KSMPTE60HZ) || !strcmp(outputmode, MODE_4K2KSMPTE50HZ)
+            || !strcmp(outputmode, MODE_4K2K100HZ) || !strcmp(outputmode, MODE_4K2K120HZ)
+            || !strcmp(outputmode, MODE_8K4K60HZ) || !strcmp(outputmode, MODE_8K4K50HZ)
+            || !strcmp(outputmode, MODE_8K4K48HZ) || !strcmp(outputmode, MODE_8K4K30HZ)
+            || !strcmp(outputmode, MODE_8K4K25HZ) || !strcmp(outputmode, MODE_8K4K24HZ)) {
             strcpy(colorAttribute, MESON_DEFAULT_COLOR_FORMAT_4K);
         } else {
             strcpy(colorAttribute, MESON_DEFAULT_COLOR_FORMAT);
@@ -558,7 +562,11 @@ static void get_best_deepcolor(struct meson_policy_in *input,
      * 1. select the color format table for different resolution or scene.
      */
     if (!strcmp(outputmode, MODE_4K2K60HZ) || !strcmp(outputmode, MODE_4K2K50HZ)
-        || !strcmp(outputmode, MODE_4K2KSMPTE60HZ) || !strcmp(outputmode, MODE_4K2KSMPTE50HZ)) {
+        || !strcmp(outputmode, MODE_4K2KSMPTE60HZ) || !strcmp(outputmode, MODE_4K2KSMPTE50HZ)
+        || !strcmp(outputmode, MODE_4K2K100HZ) || !strcmp(outputmode, MODE_4K2K120HZ)
+        || !strcmp(outputmode, MODE_8K4K60HZ) || !strcmp(outputmode, MODE_8K4K50HZ)
+        || !strcmp(outputmode, MODE_8K4K48HZ) || !strcmp(outputmode, MODE_8K4K30HZ)
+        || !strcmp(outputmode, MODE_8K4K25HZ) || !strcmp(outputmode, MODE_8K4K24HZ)) {
         /* 2160p50hz 2160p60hz 3840x2160p60hz 3840x2160p50hz case */
         if (input->hdr_info.is_lowpower_mode) {
             colorList = COLOR_ATTRIBUTE_LIST3;
@@ -835,7 +843,11 @@ static void get_hdmi_color_attr(struct meson_policy_in *input,
      */
     if (!strlen(supportedColorList)) {
         if (!strcmp(outputmode, MODE_4K2K60HZ) || !strcmp(outputmode, MODE_4K2K50HZ)
-            || !strcmp(outputmode, MODE_4K2KSMPTE60HZ) || !strcmp(outputmode, MODE_4K2KSMPTE50HZ)) {
+            || !strcmp(outputmode, MODE_4K2KSMPTE60HZ) || !strcmp(outputmode, MODE_4K2KSMPTE50HZ)
+            || !strcmp(outputmode, MODE_4K2K100HZ) || !strcmp(outputmode, MODE_4K2K120HZ)
+            || !strcmp(outputmode, MODE_8K4K60HZ) || !strcmp(outputmode, MODE_8K4K50HZ)
+            || !strcmp(outputmode, MODE_8K4K48HZ) || !strcmp(outputmode, MODE_8K4K30HZ)
+            || !strcmp(outputmode, MODE_8K4K25HZ) || !strcmp(outputmode, MODE_8K4K24HZ)) {
             strcpy(color_attr, MESON_DEFAULT_COLOR_FORMAT_4K);
         } else {
             strcpy(color_attr, MESON_DEFAULT_COLOR_FORMAT);
