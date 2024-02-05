@@ -93,11 +93,11 @@ static int32_t update_dv_type(struct meson_hdr_info *info) {
      * 1. update input amdolby vision info
      * 1.1 update current amdolby vision mode
      */
-    strcpy(type, info->ubootenv_dv_type);
+    strlcpy(type, info->ubootenv_dv_type, sizeof(type));
     /*
      * 1.2 update tv support amdolby vision deep color
      */
-    strcpy(dv_deepcolor, info->dv_deepcolor);
+    strlcpy(dv_deepcolor, info->dv_deepcolor, sizeof(dv_deepcolor));
     SYS_LOGI("ubootenv_dv_type %s dv_deepcolor:%s\n", type, dv_deepcolor);
 
     /*
@@ -252,7 +252,7 @@ static int32_t amdv_update_mode(struct meson_policy_in *input,
      */
     for (int i = DV_MODE_LIST_SIZE - 1; i >= 0; i--) {
         if (strstr(input->hdr_info.dv_max_mode, DV_MODE_LIST[i]) != NULL) {
-            strcpy(dv_displaymode, DV_MODE_LIST[i]);
+            strlcpy(dv_displaymode, DV_MODE_LIST[i], sizeof(dv_displaymode));
             break;
         }
     }
@@ -328,7 +328,7 @@ static int32_t dv_scene_process(struct meson_policy_in *input,
      */
     char dv_attr[MESON_MODE_LEN] = {0};
     update_dv_attr(input->hdr_info.dv_deepcolor, dv_type, dv_attr);
-    strcpy(output->deepcolor, dv_attr);
+    strlcpy(output->deepcolor, dv_attr, sizeof(output->deepcolor));
     SYS_LOGI("dv final_deepcolor:%s", output->deepcolor);
 
     /*
@@ -336,14 +336,14 @@ static int32_t dv_scene_process(struct meson_policy_in *input,
      */
     char final_displaymode[MESON_MODE_LEN] = {0};
     char cur_displaymode[MESON_MODE_LEN] = {0};
-    strcpy(cur_displaymode, input->cur_displaymode);
+    strlcpy(cur_displaymode, input->cur_displaymode, sizeof(cur_displaymode));
 
     ret = amdv_update_mode(input,
                    cur_displaymode,
                    dv_type,
                    final_displaymode,
                    policy);
-    strcpy(output->displaymode, final_displaymode);
+    strlcpy(output->displaymode, final_displaymode, sizeof(output->displaymode));
     SYS_LOGI("dv final_displaymode:%s", output->displaymode);
 
     return ret;
@@ -396,7 +396,7 @@ static bool mode_support_check(const char *mode, const char * color, struct meso
     bool validmode = false;
 
     find_brr_mode(mode, input, outputmode);
-    strcat(outputmode, color);
+    strlcat(outputmode, color, sizeof(outputmode));
 
     /* try support or not */
     validmode = meson_write_valid_mode_sys(DISPLAY_HDMI_VALID_MODE, outputmode);
@@ -443,8 +443,8 @@ static bool is_support_4kHDR(struct meson_policy_in *input,
                     if (strcmp(it->name, resolutionList[j]) == 0) {
                         if (mode_support_check(resolutionList[j], colorList[i], input)) {
                            SYS_LOGI("%s mode:[%s], deep color:[%s]\n", __FUNCTION__, resolutionList[j], colorList[i]);
-                           strcpy(output_info->deepcolor, colorList[i]);
-                           strcpy(output_info->displaymode, resolutionList[j]);
+                           strlcpy(output_info->deepcolor, colorList[i], sizeof(output_info->deepcolor));
+                           strlcpy(output_info->displaymode, resolutionList[j], sizeof(output_info->displaymode));
                            return true;
                         }
                     }
@@ -491,8 +491,8 @@ static bool is_support_non4kHDR(struct meson_policy_in *input,
                     if (strcmp(it->name, resolutionList[j]) == 0) {
                         if (mode_support_check(resolutionList[j], colorList[i], input)) {
                            SYS_LOGI("%s mode:[%s], deep color:[%s]\n", __FUNCTION__, resolutionList[j], colorList[i]);
-                           strcpy(output_info->deepcolor, colorList[i]);
-                           strcpy(output_info->displaymode, resolutionList[j]);
+                           strlcpy(output_info->deepcolor, colorList[i], sizeof(output_info->deepcolor));
+                           strlcpy(output_info->displaymode, resolutionList[j], sizeof(output_info->displaymode));
                            return true;
                         }
                     }
@@ -537,7 +537,7 @@ static void get_best_deepcolor(struct meson_policy_in *input,
     int length = 0;
     const char **colorList = NULL;
     char supportedColorList[MESON_MAX_STR_LEN];
-    strcpy(supportedColorList, input->con_info.dc_cap);
+    strlcpy(supportedColorList, input->con_info.dc_cap, sizeof(supportedColorList));
 
     /*
      * if read /sys/class/amhdmitx/amhdmitx0/dc_cap is NULL
@@ -646,7 +646,7 @@ static bool hdr_scene_process(struct meson_policy_in *input,
                 char hdmi_mode[MESON_MODE_LEN] = { 0 };
                 int depth = 0;
 
-                strcpy(hdmi_mode, resolutionList[j]);
+                strlcpy(hdmi_mode, resolutionList[j], sizeof(hdmi_mode));
                 if (is_support_HdmiMode(input, hdmi_mode)) {
                     get_best_deepcolor(input, hdmi_mode, cur_color_attribute);
                     char *pos = strchr(cur_color_attribute, ',');
@@ -654,14 +654,14 @@ static bool hdr_scene_process(struct meson_policy_in *input,
                         find = true;
                         if (sscanf(pos + 1, "%dbit", &depth) == 1) {
                             if (depth >= 10) {
-                                strcpy(output_info->deepcolor, cur_color_attribute);
-                                strcpy(output_info->displaymode, hdmi_mode);
+                                strlcpy(output_info->deepcolor, cur_color_attribute, sizeof(output_info->deepcolor));
+                                strlcpy(output_info->displaymode, hdmi_mode, sizeof(output_info->displaymode));
                                 break;
                             }
                         }
                         if (!first) {
-                            strcpy(output_info->deepcolor, cur_color_attribute);
-                            strcpy(output_info->displaymode, hdmi_mode);
+                            strlcpy(output_info->deepcolor, cur_color_attribute, sizeof(output_info->deepcolor));
+                            strlcpy(output_info->displaymode, hdmi_mode, sizeof(output_info->displaymode));
                             first = true;
                         }
                     }
@@ -688,8 +688,8 @@ static bool hdr_scene_process(struct meson_policy_in *input,
                     if (!strcmp(it->name, resolutionList[j])) {
                         if (mode_support_check(resolutionList[j], input->con_info.ubootenv_colorattr, input)) {
                             SYS_LOGI("%s mode:[%s], deep color:[%s]\n", __FUNCTION__, resolutionList[j], input->con_info.ubootenv_colorattr);
-                            strcpy(output_info->deepcolor, input->con_info.ubootenv_colorattr);
-                            strcpy(output_info->displaymode, resolutionList[j]);
+                            strlcpy(output_info->deepcolor, input->con_info.ubootenv_colorattr, sizeof(output_info->deepcolor));
+                            strlcpy(output_info->displaymode, resolutionList[j], sizeof(output_info->displaymode));
                             find = true;
                             break;
                         }
@@ -725,8 +725,8 @@ static bool hdr_scene_process(struct meson_policy_in *input,
                 if (strstr(input->con_info.dc_cap, colorList[j]) != NULL) {
                     if (mode_support_check(input->cur_displaymode, colorList[j], input)) {
                         SYS_LOGI("%s mode:[%s], deep color:[%s]\n", __FUNCTION__, input->cur_displaymode, colorList[j]);
-                        strcpy(output_info->deepcolor, colorList[j]);
-                        strcpy(output_info->displaymode, input->cur_displaymode);
+                        strlcpy(output_info->deepcolor, colorList[j], sizeof(output_info->deepcolor));
+                        strlcpy(output_info->displaymode, input->cur_displaymode, sizeof(output_info->displaymode));
                         find = true;
                         break;
                    }
@@ -736,8 +736,8 @@ static bool hdr_scene_process(struct meson_policy_in *input,
             //1.check mode+color format support or not
             if (mode_support_check(input->cur_displaymode, input->con_info.ubootenv_colorattr, input)) {
                 SYS_LOGI("support current mode:[%s], deep color:[%s]\n", input->cur_displaymode, input->con_info.ubootenv_colorattr);
-                strcpy(output_info->deepcolor, input->con_info.ubootenv_colorattr);
-                strcpy(output_info->displaymode, input->cur_displaymode);
+                strlcpy(output_info->deepcolor, input->con_info.ubootenv_colorattr, sizeof(output_info->deepcolor));
+                strlcpy(output_info->displaymode, input->cur_displaymode, sizeof(output_info->displaymode));
                 find = true;
             } else if (is_support_HdmiMode(input, input->cur_displaymode)) {
                 SYS_LOGI("support current mode:[%s]\n", input->cur_displaymode);
@@ -747,8 +747,8 @@ static bool hdr_scene_process(struct meson_policy_in *input,
                  */
                 char color_attribute[MESON_MODE_LEN] = {0};
                 get_best_deepcolor(input, input->cur_displaymode, color_attribute);
-                strcpy(output_info->deepcolor, color_attribute);
-                strcpy(output_info->displaymode, input->cur_displaymode);
+                strlcpy(output_info->deepcolor, color_attribute, sizeof(output_info->deepcolor));
+                strlcpy(output_info->displaymode, input->cur_displaymode, sizeof(output_info->displaymode));
                 find = true;
             }
         }
@@ -765,8 +765,8 @@ static bool hdr_scene_process(struct meson_policy_in *input,
          if (mode_support_check(input->cur_displaymode, input->con_info.ubootenv_colorattr, input)
              && !input->con_info.is_bestcolorspace) {
              SYS_LOGI("support current mode:[%s], deep color:[%s]\n", input->cur_displaymode, input->con_info.ubootenv_colorattr);
-             strcpy(output_info->deepcolor, input->con_info.ubootenv_colorattr);
-             strcpy(output_info->displaymode, input->cur_displaymode);
+             strlcpy(output_info->deepcolor, input->con_info.ubootenv_colorattr, sizeof(output_info->deepcolor));
+             strlcpy(output_info->displaymode, input->cur_displaymode, sizeof(output_info->displaymode));
              find = true;
          } else if (is_support_HdmiMode(input, input->cur_displaymode)) {
              SYS_LOGI("support current mode:[%s]\n", input->cur_displaymode);
@@ -776,8 +776,8 @@ static bool hdr_scene_process(struct meson_policy_in *input,
               */
              char color_attribute[MESON_MODE_LEN] = {0};
              get_best_deepcolor(input, input->cur_displaymode, color_attribute);
-             strcpy(output_info->deepcolor, color_attribute);
-             strcpy(output_info->displaymode, input->cur_displaymode);
+             strlcpy(output_info->deepcolor, color_attribute, sizeof(output_info->deepcolor));
+             strlcpy(output_info->displaymode, input->cur_displaymode, sizeof(output_info->displaymode));
              find = true;
          } else {
              //3.find best hdr prefer mode
@@ -870,7 +870,7 @@ static void get_hdmi_color_attr(struct meson_policy_in *input,
                                 char *color_attr,
                                 enum meson_mode_policy policy __unused) {
     char supportedColorList[MESON_MAX_STR_LEN];
-    strcpy(supportedColorList, input->con_info.dc_cap);
+    strlcpy(supportedColorList, input->con_info.dc_cap, sizeof(supportedColorList));
 
     /*
      * if read /sys/class/amhdmitx/amhdmitx0/dc_cap is NULL.
@@ -898,7 +898,7 @@ static void get_hdmi_color_attr(struct meson_policy_in *input,
      */
     if (input->con_info.is_bestcolorspace == false) {
         char colorTemp[MESON_MODE_LEN] = {0};
-        strcpy(colorTemp, input->con_info.ubootenv_colorattr);
+        strlcpy(colorTemp, input->con_info.ubootenv_colorattr, sizeof(colorTemp));
         if (mode_support_check(outputmode, colorTemp, input)) {
             strcpy(color_attr, input->con_info.ubootenv_colorattr);
         } else {
@@ -958,14 +958,14 @@ static void sdr_scene_process(struct meson_policy_in *input,
             get_hdmi_outputmode(input, outputmode, policy);
         } else {
             /* hdmi not connect */
-            strcpy(outputmode, input->con_info.ubootenv_cvbsmode);
+            strlcpy(outputmode, input->con_info.ubootenv_cvbsmode, sizeof(outputmode));
         }
         /* not find prefer resolution,use default resolution */
         if (strlen(outputmode) == 0) {
-            strcpy(outputmode, MESON_DEFAULT_HDMI_MODE);
+            strlcpy(outputmode, MESON_DEFAULT_HDMI_MODE, sizeof(outputmode));
         }
 
-        strcpy(output_info->displaymode, outputmode);
+        strlcpy(output_info->displaymode, outputmode, sizeof(output_info->displaymode));
         SYS_LOGI("final_displaymode:%s\n", output_info->displaymode);
     } else if (input->state == MESON_SCENE_STATE_SWITCH) {
         /*
@@ -973,7 +973,7 @@ static void sdr_scene_process(struct meson_policy_in *input,
          * doesn't read hdmi info for ui switch scene
          * use user want to set resolution and frame rate
          */
-        strcpy(output_info->displaymode, input->cur_displaymode);
+        strlcpy(output_info->displaymode, input->cur_displaymode, sizeof(output_info->displaymode));
         SYS_LOGI("final_displaymode:%s\n", output_info->displaymode);
     }
 
@@ -982,7 +982,7 @@ static void sdr_scene_process(struct meson_policy_in *input,
      */
     char color_attribute[MESON_MODE_LEN] = {0};
     update_deepcolor(input, output_info->displaymode, color_attribute, policy);
-    strcpy(output_info->deepcolor, color_attribute);
+    strlcpy(output_info->deepcolor, color_attribute, sizeof(output_info->deepcolor));
     SYS_LOGI("final_deepcolor = %s\n", output_info->deepcolor);
 }
 
@@ -1066,26 +1066,26 @@ int32_t meson_mode_get_policy_output(int32_t connector, struct meson_policy_out 
         output->dv_type = scene_output_info.dv_type;
     } else if (is_hdr_prefer(input) == 1 || dv_support != 0) {
         hdr_scene_process(input, &scene_output_info, policy);
-        strcpy(output->displaymode, scene_output_info.displaymode);
-        strcpy(output->deepcolor, scene_output_info.deepcolor);
+        strlcpy(output->displaymode, scene_output_info.displaymode, sizeof(output->displaymode));
+        strlcpy(output->deepcolor, scene_output_info.deepcolor, sizeof(output->deepcolor));
     } else {
         sdr_scene_process(input, &scene_output_info, policy);
-        strcpy(output->displaymode, scene_output_info.displaymode);
-        strcpy(output->deepcolor, scene_output_info.deepcolor);
+        strlcpy(output->displaymode, scene_output_info.displaymode, sizeof(output->displaymode));
+        strlcpy(output->deepcolor, scene_output_info.deepcolor,  sizeof(output->deepcolor));
     }
 
     /*
      * 3. not find outputmode and use default mode
      */
     if (strlen(output->displaymode) == 0) {
-        strcpy(output->displaymode, MESON_DEFAULT_HDMI_MODE);
+        strlcpy(output->displaymode, MESON_DEFAULT_HDMI_MODE, sizeof(output->displaymode));
     }
 
     /*
      * 4. not find color space and use default mode
      */
     if (!strstr(output->deepcolor, "bit")) {
-        strcpy(output->deepcolor, MESON_DEFAULT_COLOR_FORMAT);
+        strlcpy(output->deepcolor, MESON_DEFAULT_COLOR_FORMAT, sizeof(output->deepcolor));
     }
 
     mp->output = *output;
@@ -1157,7 +1157,7 @@ int32_t meson_mode_support_mode(int32_t connector, int32_t type, char *mode) {
     int length = 0;
     const char **colorList = NULL;
     char supportedColorList[MESON_MAX_STR_LEN];
-    strcpy(supportedColorList, input->con_info.dc_cap);
+    strlcpy(supportedColorList, input->con_info.dc_cap, sizeof(supportedColorList));
 
     if (type == MESON_HDR10_PRIORITY) {
         //1. select the color format table for different resolution
@@ -1185,7 +1185,7 @@ int32_t meson_mode_support_mode(int32_t connector, int32_t type, char *mode) {
         char dv_displaymode[MESON_MODE_LEN] = {0};
         for (int i = DV_MODE_LIST_SIZE - 1; i >= 0; i--) {
             if (strstr(input->hdr_info.dv_max_mode, DV_MODE_LIST[i]) != NULL) {
-                strcpy(dv_displaymode, DV_MODE_LIST[i]);
+                strlcpy(dv_displaymode, DV_MODE_LIST[i], sizeof(dv_displaymode));
                 break;
             }
         }
