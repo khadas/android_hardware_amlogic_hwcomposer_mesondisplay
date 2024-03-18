@@ -164,7 +164,6 @@ static void update_dv_attr(const char *deepcolor, int dolbyvision_type, char * d
  * find the index of mode base the hdmi resolution priority table
  * TODO: refactor
  */
- /*
 static int32_t find_resolution_index(const char *mode, int flag) {
     int32_t validMode = 0;
     if (strlen(mode) > 0) {
@@ -180,6 +179,10 @@ static int32_t find_resolution_index(const char *mode, int flag) {
         return -1;
     }
 
+    /*
+     * frame rate priority than resolution
+     * ex:1080p60hz prefer to 2160p30hz
+     */
     if (flag == MESON_POLICY_FRAMERATE) {
         for (int64_t index = 0; index < sizeof(MODE_FRAMERATE_FIRST)/sizeof(char *); index++) {
             if (strcmp(mode, MODE_FRAMERATE_FIRST[index]) == 0) {
@@ -187,6 +190,10 @@ static int32_t find_resolution_index(const char *mode, int flag) {
             }
         }
     } else {
+        /*
+         * resolution priority than frame rate
+         * ex:2160p30hz prefer to 1080p60hz
+         */
         for (int64_t index = 0; index < sizeof(MODE_RESOLUTION_FIRST)/sizeof(char *); index++) {
             if (strcmp(mode, MODE_RESOLUTION_FIRST[index]) == 0) {
                 return index;
@@ -195,7 +202,6 @@ static int32_t find_resolution_index(const char *mode, int flag) {
     }
     return -1;
 }
-*/
 /* TODO: need refactor */
 /* check if the edid support current hdmi mode */
 static bool is_support_HdmiMode(struct meson_policy_in *input, char* mode) {
@@ -220,7 +226,6 @@ static bool is_support_HdmiMode(struct meson_policy_in *input, char* mode) {
     }
 }
 
-/*
 static bool is_dv_support_mode(char *mode) {
     bool validMode = false;
     if (strlen(mode) != 0 && strstr(mode, "hz") != NULL) {
@@ -233,14 +238,14 @@ static bool is_dv_support_mode(char *mode) {
 
     return validMode;
 }
-*/
 
-static void amdv_update_mode(struct meson_policy_in *input,
+static int32_t amdv_update_mode(struct meson_policy_in *input,
                     char *cur_outputmode,
                     int dv_type,
                     char *final_displaymode,
                     enum meson_mode_policy policy) {
     char dv_displaymode[MESON_MODE_LEN] = {0};
+    int32_t ret = 0;
 
     /*
      * 1. update tv support amdolby vision resolution
@@ -291,19 +296,24 @@ static void amdv_update_mode(struct meson_policy_in *input,
          * hdmi output resolution need small than amdolby vision resolution
          * x:amdolby vision support 1080p60hz,only can output small 1080p60hz resolution
          */
-        if (is_support_HdmiMode(input, cur_outputmode)) {
-            strcpy(final_displaymode, cur_outputmode);
+        if ((find_resolution_index(cur_outputmode, MESON_POLICY_RESOLUTION) >
+                find_resolution_index(dv_displaymode, MESON_POLICY_RESOLUTION)) ||
+                !is_dv_support_mode(cur_outputmode)) {
+            ret = -1;
+            SYS_LOGI("cur_outputmode:%s doesn't support dv", cur_outputmode);
         } else {
-            strcpy(final_displaymode, dv_displaymode);
+            strcpy(final_displaymode, cur_outputmode);
         }
     }
 
     SYS_LOGI("final_displaymode:%s, cur_outputmode:%s, dv_displaymode:%s", final_displaymode, cur_outputmode, dv_displaymode);
+    return ret;
 }
 
 static int32_t dv_scene_process(struct meson_policy_in *input,
                                 struct meson_policy_out *output,
                                 enum meson_mode_policy policy) {
+    int32_t ret = 0;
     /*
      * 1. update amdolby vision output type
      */
@@ -328,7 +338,7 @@ static int32_t dv_scene_process(struct meson_policy_in *input,
     char cur_displaymode[MESON_MODE_LEN] = {0};
     strcpy(cur_displaymode, input->cur_displaymode);
 
-    amdv_update_mode(input,
+    ret = amdv_update_mode(input,
                    cur_displaymode,
                    dv_type,
                    final_displaymode,
@@ -336,7 +346,7 @@ static int32_t dv_scene_process(struct meson_policy_in *input,
     strcpy(output->displaymode, final_displaymode);
     SYS_LOGI("dv final_displaymode:%s", output->displaymode);
 
-    return 0;
+    return ret;
 }
 
 /*
@@ -1023,6 +1033,7 @@ int32_t meson_mode_get_policy_output(int32_t connector, struct meson_policy_out 
     GET_CURRENT_POLICY(connector);
     struct meson_policy_in *input = &mp->input;
     enum meson_mode_policy policy = mp->policy;
+    int32_t dv_support = 0;
 
     /* no output */
     if (output ==  NULL)
@@ -1036,7 +1047,7 @@ int32_t meson_mode_get_policy_output(int32_t connector, struct meson_policy_out 
      *    only for tv support dv and box enable dv
      */
     if (is_dv_prefer(input) == true) {
-        dv_scene_process(input, &scene_output_info, policy);
+        dv_support = dv_scene_process(input, &scene_output_info, policy);
     } else if (input->hdr_info.is_enable_dv) {
         /* for enable amdolby vision core when first boot connecting non dv tv */
         output->dv_type = DOLBY_VISION_STD_ENABLE;
@@ -1049,11 +1060,11 @@ int32_t meson_mode_get_policy_output(int32_t connector, struct meson_policy_out 
      * 2. hdr/sdr scene process
      *    and decide final display mode and deepcolor
      */
-    if (is_dv_prefer(input) == true) {
+    if (is_dv_prefer(input) == true && dv_support == 0) {
         strcpy(output->displaymode, scene_output_info.displaymode);
         strcpy(output->deepcolor, scene_output_info.deepcolor);
         output->dv_type = scene_output_info.dv_type;
-    } else if (is_hdr_prefer(input) == 1) {
+    } else if (is_hdr_prefer(input) == 1 || dv_support != 0) {
         hdr_scene_process(input, &scene_output_info, policy);
         strcpy(output->displaymode, scene_output_info.displaymode);
         strcpy(output->deepcolor, scene_output_info.deepcolor);
