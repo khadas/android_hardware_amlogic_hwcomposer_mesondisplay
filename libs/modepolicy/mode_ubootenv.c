@@ -45,8 +45,8 @@ typedef struct environment {
 
 typedef struct env_attribute {
     struct env_attribute *next;
-    char key[256];
-    char value[4096];
+    char *key;
+    char *value;
 } env_attribute_t;
 
 static const char *PROFIX_UBOOTENV_VAR = "ubootenv.var.";
@@ -64,6 +64,7 @@ static pthread_mutex_t mEnvLock;
 static struct env_attribute* meson_mode_parse_attribute() {
     char *proc = mEnvData.data;
     char *nextProc;
+    char *value_tmp;
     env_attribute_t *attr = &mEnvAttrHeader;
 
     memset(attr, 0, sizeof(env_attribute_t));
@@ -74,8 +75,34 @@ static struct env_attribute* meson_mode_parse_attribute() {
         char *key = strchr(proc, (int)'=');
         if (key != NULL) {
             *key=0;
-            strcpy(attr->key, proc);
-            strcpy(attr->value, key + sizeof(char));
+            attr->key = (char *)malloc(strlen(proc) + sizeof(char)*3);
+            if (attr->key == NULL) {
+                SYS_LOGE("[ubootenv] value malloc error \n");
+                if (!(*nextProc)) {
+                    break;
+                }
+                proc = nextProc;
+                continue;
+            } else {
+                memset(attr->key, 0, strlen(proc) + sizeof(char)*3);
+                strcpy(attr->key, proc);
+            }
+
+            value_tmp = key + sizeof(char);
+            attr->value = (char *)malloc(strlen(value_tmp) + sizeof(char)*3);
+            if (attr->value == NULL) {
+                SYS_LOGE("[ubootenv] key malloc error \n");
+                if (!(*nextProc)) {
+                    break;
+                }
+                proc = nextProc;
+                continue;
+            } else {
+                memset(attr->value, 0, strlen(value_tmp) + sizeof(char)*3);
+                strcpy(attr->value, key + sizeof(char));
+            }
+
+            SYS_LOGD("parseAttribute: key:%s value:%s\n", attr->key, attr->value);
         } else {
             SYS_LOGI("[ubootenv] error need '=' skip this value\n");
         }
@@ -132,11 +159,35 @@ static int meson_mode_set_attribute(const char * key,  const char * value, bool 
         SYS_LOGI("[ubootenv] ubootenv.var.%s not found, create it.\n", key);
 
         attr = (struct env_attribute *)malloc(sizeof(env_attribute_t));
-        last->next = attr;
-        memset(attr, 0, sizeof(env_attribute_t));
-        strcpy(attr->key, key);
-        strcpy(attr->value, value);
-        return 1;
+        if (attr != NULL) {
+            memset(attr, 0, sizeof(env_attribute_t));
+            attr->key = (char *)malloc(strlen(key) + sizeof(char)*3);
+            if (attr->key != NULL) {
+                memset(attr->key, 0, strlen(key) + sizeof(char)*3);
+                strcpy(attr->key, key);
+            } else {
+                free(attr);
+                SYS_LOGE("[ubootenv] set key malloc error \n");
+                return 0;
+            }
+
+            attr->value = (char *)malloc(strlen(value) + sizeof(char)*3);
+            if (attr->value != NULL) {
+                memset(attr->value, 0, strlen(value) + sizeof(char)*3);
+                strcpy(attr->value, value);
+            } else {
+                free(attr);
+                free(attr->key);
+                SYS_LOGE("[ubootenv] set value malloc error \n");
+                return 0;
+            }
+
+            last->next = attr;
+            return 1;
+        } else {
+            SYS_LOGE("[ubootenv] set malloc error \n");
+        }
+
     }
     return 0;
 }
