@@ -50,7 +50,7 @@ static bool is_dv_prefer(struct meson_policy_in *input) {
     }
 
     /* dv is enable and tv also support it */
-    if (hdr_ptr->is_enable_dv && hdr_ptr->is_tv_supportDv)
+    if (hdr_ptr->is_amdv_enable && hdr_ptr->is_tv_supportDv)
         return true;
 
     return false;
@@ -1048,7 +1048,7 @@ int32_t meson_mode_get_policy_output(int32_t connector, struct meson_policy_out 
      */
     if (is_dv_prefer(input) == true) {
         dv_support = dv_scene_process(input, &scene_output_info, policy);
-    } else if (input->hdr_info.is_enable_dv) {
+    } else if (input->hdr_info.is_amdv_enable) {
         /* for enable amdolby vision core when first boot connecting non dv tv */
         output->dv_type = DOLBY_VISION_STD_ENABLE;
     } else {
@@ -1066,12 +1066,16 @@ int32_t meson_mode_get_policy_output(int32_t connector, struct meson_policy_out 
         output->dv_type = scene_output_info.dv_type;
     } else if (is_hdr_prefer(input) == 1 || dv_support != 0) {
         hdr_scene_process(input, &scene_output_info, policy);
-        strlcpy(output->displaymode, scene_output_info.displaymode, sizeof(output->displaymode));
-        strlcpy(output->deepcolor, scene_output_info.deepcolor, sizeof(output->deepcolor));
+        strcpy(output->displaymode, scene_output_info.displaymode);
+        strcpy(output->deepcolor, scene_output_info.deepcolor);
+        if (input->hdr_info.is_amdv_enable)
+            output->dv_type = DOLBY_VISION_STD_ENABLE;
     } else {
         sdr_scene_process(input, &scene_output_info, policy);
-        strlcpy(output->displaymode, scene_output_info.displaymode, sizeof(output->displaymode));
-        strlcpy(output->deepcolor, scene_output_info.deepcolor,  sizeof(output->deepcolor));
+        strcpy(output->displaymode, scene_output_info.displaymode);
+        strcpy(output->deepcolor, scene_output_info.deepcolor);
+        if (input->hdr_info.is_amdv_enable)
+            output->dv_type = DOLBY_VISION_STD_ENABLE;
     }
 
     /*
