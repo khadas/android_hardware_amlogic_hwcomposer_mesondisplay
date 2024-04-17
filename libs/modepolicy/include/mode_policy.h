@@ -167,7 +167,7 @@ typedef struct meson_mode_info {
 } meson_mode_info_t;
 
 typedef struct meson_hdr_info {
-    bool is_enable_dv;                      /* dolby vision enable or not */
+    bool is_amdv_enable;                    /* dolby vision enable or not */
     bool is_tv_supportHDR;                  /* tv is support HDR or not */
     bool is_tv_supportDv;                   /* tv is support dolby vision or not*/
     bool is_hdr_resolution_priority;        /* Hdr Resolution Priority enable or not */

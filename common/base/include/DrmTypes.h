@@ -346,11 +346,14 @@ typedef struct drm_vrr_mode_group {
         uint32_t height;
         uint32_t vrr_min;
         uint32_t vrr_max;
+        uint32_t brr;
+        char modename[DRM_DISPLAY_MODE_LEN];
 } drm_meson_vrr_mode_group_t;
 
 typedef struct drm_vrr_mode_groups {
+        uint32_t conn_id;
         uint32_t num;
-        drm_meson_vrr_mode_group_t gropus[MAX_VRR_MODE_GROUP];
+        drm_meson_vrr_mode_group_t groups[MAX_VRR_MODE_GROUP];
 } drm_meson_vrr_mode_groups_t;
 
 /*the invalid zorder value definition.*/

@@ -8,6 +8,7 @@
  */
 #include <unistd.h>
 #include <getopt.h>
+#include <stdlib.h>
 
 #ifdef __ANDROID__
 #include <cutils/properties.h>
@@ -249,7 +250,7 @@ void DebugHelper::resolveCmd() {
                 if (strcmp(paramArray[i], COMMAND_DEVICE_COMPOSITION_THRESHOLD) == 0) {
                     i++;
                     CHECK_CMD_INT_PARAMETER();
-                    mDeviceCompositionThreshold = atoi(paramArray[i]);
+                    mDeviceCompositionThreshold = strtol(paramArray[i], NULL, 10);
                     continue;
                 }
 
@@ -277,7 +278,7 @@ void DebugHelper::resolveCmd() {
                 if (strcmp(paramArray[i], COMMAND_HIDE_LAYER) == 0) {
                     i++;
                     CHECK_CMD_INT_PARAMETER();
-                    int layerId = atoi(paramArray[i]);
+                    int layerId = strtol(paramArray[i], NULL, 10);
                     if (layerId < 0) {
                         ALOGE("Show invalid layer (%d)", layerId);
                     } else {
@@ -290,7 +291,7 @@ void DebugHelper::resolveCmd() {
                 if (strcmp(paramArray[i], COMMAND_SHOW_LAYER) == 0) {
                     i++;
                     CHECK_CMD_INT_PARAMETER();
-                    int layerId = atoi(paramArray[i]);
+                    int layerId = strtol(paramArray[i], NULL, 10);
                     if (layerId < 0) {
                         ALOGE("Show invalid layer (%d)", layerId);
                     } else {
@@ -303,7 +304,7 @@ void DebugHelper::resolveCmd() {
                 if (strcmp(paramArray[i], COMMAND_HIDE_PLANE) == 0) {
                     i++;
                     CHECK_CMD_INT_PARAMETER();
-                    int planeId = atoi(paramArray[i]);
+                    int planeId = strtol(paramArray[i], NULL, 10);
                     if (planeId < 0) {
                         ALOGE("Show invalid plane (%d)", planeId);
                     } else {
@@ -315,7 +316,7 @@ void DebugHelper::resolveCmd() {
                 if (strcmp(paramArray[i], COMMAND_SHOW_PLANE) == 0) {
                     i++;
                     CHECK_CMD_INT_PARAMETER();
-                    int planeId = atoi(paramArray[i]);
+                    int planeId = strtol(paramArray[i], NULL, 10);
                     if (planeId < 0) {
                         ALOGE("Show invalid plane (%d)", planeId);
                     } else {
@@ -327,7 +328,7 @@ void DebugHelper::resolveCmd() {
                 if (strcmp(paramArray[i], COMMAND_SHOW_PATTERN_ON_PLANE) == 0) {
                     i++;
                     CHECK_CMD_INT_PARAMETER();
-                    int planeId = atoi(paramArray[i]);
+                    int planeId = strtol(paramArray[i], NULL, 10);
                     if (planeId < 0) {
                         ALOGE("Show invalid plane (%d)", planeId);
                     } else {
@@ -339,7 +340,7 @@ void DebugHelper::resolveCmd() {
                 if (strcmp(paramArray[i], COMMAND_HIDE_PATTERN_ON_PLANE) == 0) {
                     i++;
                     CHECK_CMD_INT_PARAMETER();
-                    int planeId = atoi(paramArray[i]);
+                    int planeId = strtol(paramArray[i], NULL, 10);
                     if (planeId < 0) {
                         ALOGE("Show invalid plane (%d)", planeId);
                     } else {
@@ -351,7 +352,7 @@ void DebugHelper::resolveCmd() {
                 if (strcmp(paramArray[i], COMMAND_SAVE_LAYER) == 0) {
                     i++;
                     CHECK_CMD_INT_PARAMETER();
-                    int layerId = atoi(paramArray[i]);
+                    int layerId = strtol(paramArray[i], NULL, 10);
                     if (layerId < 0) {
                         ALOGE("Save layer (%d)", layerId);
                     } else {

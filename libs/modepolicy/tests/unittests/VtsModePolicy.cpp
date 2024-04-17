@@ -133,7 +133,7 @@ void VtsModePolicy::parseDcCap(const Json::Value &root) {
 
 int VtsModePolicy::parseHdrInfo(const Json::Value &root) {
     auto hdrPtr = &mIn.hdr_info;
-    hdrPtr->is_enable_dv = root["enableDV"].asBool();
+    hdrPtr->is_amdv_enable = root["enableDV"].asBool();
     hdrPtr->is_tv_supportHDR = root["supportHdr"].asBool();
     hdrPtr->is_tv_supportDv = root["supportDv"].asBool();
     hdrPtr->is_hdr_resolution_priority = root["hdrResolutionPriority"].asBool();
