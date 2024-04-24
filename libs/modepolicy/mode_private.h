@@ -29,6 +29,9 @@
 #define DV_MODE_4K2K60HZ                "2160p60hz"
 #define DV_MODE_LIST_SIZE               10
 
+/*for check high frame rate support dv or not*/
+#define DV_VSVDB_PARITY                 "Parity: 1"
+
 #define MODE_576CVBS                    "576cvbs"
 #define MODE_480CVBS                    "480cvbs"
 

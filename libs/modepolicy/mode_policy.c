@@ -226,13 +226,26 @@ static bool is_support_HdmiMode(struct meson_policy_in *input, char* mode) {
     }
 }
 
-static bool is_dv_support_mode(char *mode) {
+static bool is_dv_support_mode(struct meson_policy_in *input, char *mode) {
     bool validMode = false;
-    if (strlen(mode) != 0 && strstr(mode, "hz") != NULL) {
-        if ((strstr(mode, "480p") == NULL) && (strstr(mode, "576p") == NULL)
-        && (strstr(mode, "smpte") == NULL) && (strstr(mode, "4096") == NULL)
-        && (strstr(mode, "i") == NULL)) {
-            validMode = true;
+
+    if (strlen(mode) != 0 && strstr(mode, "hz") != NULL
+        && is_support_HdmiMode(input, mode)) {
+        if (!strcmp(mode, MODE_1080P100HZ)
+            || !strcmp(mode, MODE_1080P120HZ)) {
+            if (strstr(input->hdr_info.dv_cap, DV_VSVDB_PARITY) != NULL) {
+                validMode = true;
+            }
+        } else {
+            if (find_resolution_index(mode, MESON_POLICY_RESOLUTION) >
+                find_resolution_index(input->hdr_info.dv_max_mode, MESON_POLICY_RESOLUTION)
+                || (strstr(mode, "480p") != NULL) || (strstr(mode, "576p") != NULL)
+                || (strstr(mode, "smpte") != NULL) || (strstr(mode, "4096") != NULL)
+                || (strstr(mode, "i") != NULL)) {
+                validMode = false;
+            } else {
+                validMode = true;
+            }
         }
     }
 
@@ -296,9 +309,7 @@ static int32_t amdv_update_mode(struct meson_policy_in *input,
          * hdmi output resolution need small than amdolby vision resolution
          * x:amdolby vision support 1080p60hz,only can output small 1080p60hz resolution
          */
-        if ((find_resolution_index(cur_outputmode, MESON_POLICY_RESOLUTION) >
-                find_resolution_index(dv_displaymode, MESON_POLICY_RESOLUTION)) ||
-                !is_dv_support_mode(cur_outputmode)) {
+        if (!is_dv_support_mode(input, cur_outputmode)) {
             ret = -1;
             SYS_LOGI("cur_outputmode:%s doesn't support dv", cur_outputmode);
         } else {
