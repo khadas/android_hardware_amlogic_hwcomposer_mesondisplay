@@ -17,11 +17,13 @@
 UvmDetach::UvmDetach(hwc2_layer_t layerId) {
     snprintf(mName, 20, "layer-%d", (int)layerId);
     mUvmBufferQueue.clear();
+    mEnable = true;
 }
 
 UvmDetach::UvmDetach(int tunnelId) {
     snprintf(mName, 20, "layer-%d", tunnelId);
     mUvmBufferQueue.clear();
+    mEnable = true;
 }
 
 UvmDetach::~UvmDetach() {
@@ -32,8 +34,14 @@ int32_t UvmDetach::getVideoInfo(struct uvm_fd_info & videoInfo) {
     return UvmDev::getInstance().getVideoInfo(videoInfo);
 }
 
+int32_t UvmDetach::setEnable(bool enable) {
+    MESON_LOGV("%s, setEnable %s", __func__, enable ? "true" : "false");
+    mEnable = enable;
+    return 0;
+}
+
 int32_t UvmDetach::attachUvmBuffer(int bufferFd) {
-    if (HwcConfig::UvmDetachEnabled()) {
+    if (HwcConfig::UvmDetachEnabled() && mEnable) {
         return UvmDev::getInstance().attachBuffer(bufferFd);
     } else {
         return 0;
@@ -41,7 +49,7 @@ int32_t UvmDetach::attachUvmBuffer(int bufferFd) {
 }
 
 int32_t UvmDetach::detachUvmBuffer() {
-    if (HwcConfig::UvmDetachEnabled()) {
+    if (HwcConfig::UvmDetachEnabled() && mEnable) {
         int signalCount = 0;
         if (mUvmBufferQueue.size() <= 0)
             return -EAGAIN;
@@ -76,7 +84,7 @@ int32_t UvmDetach::detachUvmBuffer() {
 }
 
 int32_t UvmDetach::collectUvmBuffer(const int fd, const int fenceFd) {
-    if (HwcConfig::UvmDetachEnabled()) {
+    if (HwcConfig::UvmDetachEnabled() && mEnable) {
         if (fd < 0) {
             MESON_LOGV("%s: %s get an invalid fd", __func__, mName);
             if (fenceFd >=0 )

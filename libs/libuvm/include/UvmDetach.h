@@ -28,6 +28,7 @@ public:
     int32_t collectUvmBuffer(const int fd, const int fence);
     int32_t releaseUvmResource();
     int32_t getVideoInfo(struct uvm_fd_info & videoInfo);
+    int32_t setEnable(bool enable);
 
     char *getDebugName() {return mName;};
 
@@ -40,5 +41,6 @@ protected:
     };
 
     std::deque<UvmBuffer> mUvmBufferQueue;
+    bool mEnable;
 };
 #endif /* HWC_UVM_DETACH_H */
