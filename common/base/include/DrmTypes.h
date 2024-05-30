@@ -14,7 +14,6 @@
 #include <drm/drm_mode.h>
 #include <xf86drm.h>
 #include <xf86drmMode.h>
-#include <string>
 
 #define MAX_VRR_MODE_GROUP 12
 
@@ -41,11 +40,6 @@ typedef struct drm_rect {
     int32_t top;
     int32_t right;
     int32_t bottom;
-
-    std::string toString() const {
-        return std::to_string(left) + ", " + std::to_string(top) \
-            + ", " + std::to_string(right) + ", " + std::to_string(bottom);
-    }
 } drm_rect_t;
 
 typedef struct drm_rect_wh {
@@ -361,20 +355,6 @@ typedef struct drm_vrr_mode_groups {
         uint32_t num;
         drm_meson_vrr_mode_group_t groups[MAX_VRR_MODE_GROUP];
 } drm_meson_vrr_mode_groups_t;
-
-/* AM_VIDEO_TYPE need sync from gralloc: am_gralloc_ext.h
- * and sync to videotunnel: meson_uvm_buffer_info.h */
-typedef enum {
-    MESON_VIDEO_DV          = 0x1,
-    MESON_VIDEO_HDR         = 0x2,
-    MESON_VIDEO_HDR10_PLUS  = 0x4,
-    MESON_VIDEO_HLG         = 0x8,
-    MESON_VIDEO_SECURE      = 0x10,
-    MESON_VIDEO_AFBC        = 0x20,
-    MESON_VIDEO_DI_POST     = 0x40,
-    MESON_VIDEO_4K          = 0x80,
-    MESON_VIDEO_8K          = 0x100,
-} MESON_VIDEO_TYPE;
 
 /*the invalid zorder value definition.*/
 #define INVALID_ZORDER 0xFFFFFFFF
