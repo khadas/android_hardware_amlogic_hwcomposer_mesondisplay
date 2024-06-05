@@ -41,6 +41,9 @@ int32_t UvmDetach::setEnable(bool enable) {
 }
 
 int32_t UvmDetach::attachUvmBuffer(int bufferFd) {
+    if (bufferFd < 0)
+        return -1;
+
     if (HwcConfig::UvmDetachEnabled() && mEnable) {
         return UvmDev::getInstance().attachBuffer(bufferFd);
     } else {
