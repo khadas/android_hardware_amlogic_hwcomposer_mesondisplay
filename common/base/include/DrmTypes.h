@@ -366,6 +366,13 @@ typedef struct drm_vrr_mode_groups {
         drm_meson_vrr_mode_group_t groups[MAX_VRR_MODE_GROUP];
 } drm_meson_vrr_mode_groups_t;
 
+typedef enum {
+    ROTATION_0,
+    ROTATION_90,
+    ROTATION_180,
+    ROTATION_270,
+} Rotation;
+
 /*the invalid zorder value definition.*/
 #define INVALID_ZORDER 0xFFFFFFFF
 #define FB_SIZE_1080P_W 1920
